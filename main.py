@@ -119,8 +119,8 @@ def draw(screen):
         screen.blit(defeat_text, text_rect.topleft)
         
         
-def movimentacaoPersonagem():
-  global velocidade_y, jump, player_x, player_y, player_size, player_speed
+def movimentacaoPersonagem_Teclado():
+  global player_x, player_y, player_size, player_speed
   keys = pygame.key.get_pressed()
 
   if keys[pygame.K_w]:
@@ -134,11 +134,18 @@ def movimentacaoPersonagem():
       
   if keys[pygame.K_s]:
       player_y += player_speed
+      
+
+def movimentacaoPersonagem_Mouse():
+  global player_x, player_y
+  
+  mouse_x, mouse_y = pygame.mouse.get_pos()
+  player_x += (mouse_x - player_x) * 0.0085
+  player_y += (mouse_y - player_y) * 0.0085 
         
         
 def update(dt):
     global game_over, start_following
-    movimentacaoPersonagem()
 
         
 # CÓDIGO PRINCIAPL
