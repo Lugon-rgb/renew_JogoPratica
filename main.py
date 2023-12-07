@@ -1,28 +1,48 @@
-import pygame, sys, random
+import pygame, sys, random, math
 from pygame.locals import *
 
 # VARIÁVEIS
-screen_width = 19 * 77
-screen_height = 7 * 77
+
+# mapa
+tile_size = 64
+screen_width = tile_size * 12
+screen_height = tile_size * 6
+mapa = []
+tile_quads = []
+tiles_pattern = ['G', 'F', 'B', 'T', 'R', 'B', 'A', 'P', 'S']
+
+mapa_config = {
+   'mapaSize_x': 36,
+   'mapaSize_y': 6,
+   'mapaDisplay_x': 12,
+   'mapaDisplay_y': 6
+}
+
+camera = {
+   'pos_x': 0,
+   'pos_y': 0,
+   'speed': 0.120
+}
+
+# jogabilidade
 game_over = False
+inicio = True
+
+# fontes
+font = None
 defeat_font = None
 
 # Define a taxa de atualização
 clock = pygame.time.Clock()
 
-#mapa
-mapa = []
-tile={} # Usando dicionário
-
 # Jogador
 player_size = 50
-player_x = screen_width // 2 - player_size // 2
-player_y = screen_height - player_size
-player_speed = 15
+player_x = 10 #player_size // 2
+player_y = screen_height // 2 - player_size // 2
+player_speed = 4
 
-font = None
 
-inicio = True
+# FUNÇÕES
 
 def comentarios():
   pass
@@ -74,7 +94,7 @@ def comentarios():
   #screen.blit(dino_walk[dino_frameAnim], (dino_x, dino_y))
   
 def draw_player(x, y):
-  pygame.draw.rect( 'white', [x, y, player_size, player_size])
+  pygame.draw.rect(screen, (0, 0, 0), [x, y, player_size, player_size])
 
 
 # FUNÇÕES
@@ -85,6 +105,15 @@ def load_mapa(filename): # Lê o conteúdo do arquivo para a matriz
    mapa.append(line)
   file.close()
   
+def load_tiles(filename, nx, ny):
+  global tileset_image, tile_quads
+  
+  tileset_image = pygame.image.load(filename)
+  for i in range(nx):
+    for j in range(ny):
+      tile_quads.append((i * tile_size, j * tile_size, tile_size, tile_size))
+
+
 def load():
   global clock, tile, font, defeat_font
   
@@ -92,8 +121,7 @@ def load():
   
   #mapa
   load_mapa("mapa.txt")
-  tile['G'] = pygame.image.load("img/Tiles/grama.png")
-  tile['A'] = pygame.image.load("img/Tiles/aguaMeio.png")
+  load_tiles("platform_tileset.png", 3, 3)
 
   # Pontuação
   font = pygame.font.Font(None, 36)
@@ -103,13 +131,23 @@ def draw(screen):
   global caixa, chao, game_over, start_following
   
   screen.fill((255,255,255))
-  
-  #pontuacao()
-  
-  #mapa
-  for i in range(8):
-    for j in range(14):
-        screen.blit(tile[mapa[i][j]], ((j * 77), (i * 77)))
+
+  # MAPA
+  offset_x = math.floor(camera['pos_x'] % tile_size)
+  first_tile_x = math.floor(camera['pos_x'] / tile_size)
+  range_x = mapa_config['mapaDisplay_x']
+
+  # antes do fim da fase - mostrar um tile a mais
+  if first_tile_x != mapa_config["mapaSize_x"] - mapa_config["mapaDisplay_x"]:
+    range_x = mapa_config["mapaDisplay_x"] + 1
+
+  for y in range(mapa_config["mapaDisplay_y"]):
+    for x in range(range_x):
+      if mapa[y][x + first_tile_x] in tiles_pattern:
+        pos = ((x * tile_size) - offset_x,(y * tile_size))
+        pattert_index = tiles_pattern.index(mapa[y][x + first_tile_x])
+        screen.blit(tileset_image, pos, tile_quads[pattert_index])
+
 
   draw_player(player_x, player_y)
 
@@ -128,9 +166,11 @@ def movimentacaoPersonagem_Teclado():
     
   if keys[pygame.K_a] and player_x > 0:
       player_x -= player_speed
+      camera['pos_x'] = camera['pos_x'] - (camera['speed'] * dt)
   
-  if keys[pygame.K_d] and player_x < screen_width - player_size:
+  if keys[pygame.K_d]: #and player_x < screen_width - player_size:
       player_x += player_speed
+      camera['pos_x'] = camera['pos_x'] + (camera['speed'] * dt)
       
   if keys[pygame.K_s]:
       player_y += player_speed
@@ -140,12 +180,35 @@ def movimentacaoPersonagem_Mouse():
   global player_x, player_y
   
   mouse_x, mouse_y = pygame.mouse.get_pos()
-  player_x += (mouse_x - player_x) * 0.0085
-  player_y += (mouse_y - player_y) * 0.0085 
+  player_x += (mouse_x - player_x) * 1
+  player_y += (mouse_y - player_y) * 1
         
-        
+ 
+
+def movimentoCamera():
+  global camera
+
+  keys = pygame.key.get_pressed()
+
+  if keys[pygame.K_d]:
+    camera['pos_x'] = camera['pos_x'] + (camera['speed'] * dt)
+
+  elif keys[pygame.K_a]:
+    camera['pos_x'] = camera['pos_x'] - (camera['speed'] * dt)
+
+  # verifica os limites da fase e trava a camera
+  if camera['pos_x'] < 0:
+    camera['pos_x'] = 0
+  elif camera['pos_x'] > (mapa_config['mapaSize_x'] - mapa_config['mapaDisplay_x']) * tile_size:
+    camera['pos_x'] = (mapa_config['mapaSize_x'] - mapa_config['mapaDisplay_x'] * tile_size)
+
+
+
 def update(dt):
-    global game_over, start_following
+  global game_over, start_following
+  #movimentacaoPersonagem_Mouse()
+  movimentacaoPersonagem_Teclado()
+  movimentoCamera()
 
         
 # CÓDIGO PRINCIAPL
@@ -168,6 +231,7 @@ while running:
       running = False
       break
 
+  print(camera['pos_x'])
   pygame.display.update()
 
 pygame.quit()
