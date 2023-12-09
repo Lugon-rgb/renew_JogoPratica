@@ -10,6 +10,7 @@ screen_height = tile_size * 6
 mapa = []
 tile_quads = []
 tiles_pattern = ['G', 'F', 'B', 'T', 'R', 'B', 'A', 'P', 'S']
+square_size = 25
 
 mapa_config = {
    'mapaSize_x': 36,
@@ -96,6 +97,17 @@ def comentarios():
 def draw_player(x, y):
   pygame.draw.rect(screen, (0, 0, 0), [x, y, player_size, player_size])
 
+# Function to create a square at random intervals
+def create_random_square():
+    x = random.randint(0, screen_width - square_size)
+    y = random.randint(0, screen_height - square_size)
+
+    pygame.draw.rect(screen, (255,255,255), (x, y, square_size, square_size))
+
+    # Define hitbox
+    hitbox = pygame.Rect(x, y, square_size, square_size)
+
+    return hitbox
 
 # FUNÇÕES
 def load_mapa(filename): # Lê o conteúdo do arquivo para a matriz
@@ -224,6 +236,9 @@ while running:
 
   draw(screen)
   update(dt)
+  # Create a square every 10 seconds
+  if pygame.time.get_ticks() % 10000 == 0:
+    square_hitbox = create_random_square()
   
 
   for event in pygame.event.get():
