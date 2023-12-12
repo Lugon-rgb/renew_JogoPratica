@@ -10,6 +10,7 @@ screen_height = tile_size * 6
 mapa = []
 tile_quads = []
 tiles_pattern = ['G', 'F', 'B', 'T', 'R', 'B', 'A', 'P', 'S']
+square_size = 25
 
 mapa_config = {
    'mapaSize_x': 36,
@@ -42,6 +43,24 @@ player_y = screen_height // 2 - player_size // 2
 player_speed = 4
 # player_hitbox = pygame.rect(player_x, player_y, player_size, player_size)
 
+# Initialize Pygame font
+pygame.font.init()
+
+# Cria quadrados em um dado intervalo para ser usado como item
+def create_random_square():
+    x = random.randint(0, screen_width - player_size)
+    y = random.randint(0, screen_height - player_size)
+
+    pygame.draw.rect(screen, (255, 0, 0), [x, y, player_size, player_size])  # Red square
+
+    # Define hitbox
+    hitbox = pygame.Rect(x, y, player_size, player_size)
+
+    return hitbox
+  
+# Pontuação
+font = pygame.font.Font(None, 36)
+defeat_font = pygame.font.Font(None, 60)
 
 # FUNÇÕES
 
@@ -97,6 +116,17 @@ def comentarios():
 def draw_player(x, y):
   pygame.draw.rect(screen, (0, 0, 0), [x, y, player_size, player_size])
 
+# Function to create a square at random intervals
+def create_random_square():
+    x = random.randint(0, screen_width - square_size)
+    y = random.randint(0, screen_height - square_size)
+
+    pygame.draw.rect(screen, (255,255,255), (x, y, square_size, square_size))
+
+    # Define hitbox
+    hitbox = pygame.Rect(x, y, square_size, square_size)
+
+    return hitbox
 
 # FUNÇÕES
 def load_mapa(filename): # Lê o conteúdo do arquivo para a matriz
@@ -156,6 +186,10 @@ def draw(screen):
         defeat_text = defeat_font.render("Você perdeu!", True, "red")
         text_rect = defeat_text.get_rect(center=(screen_width // 2, (screen_height // 2)))
         screen.blit(defeat_text, text_rect.topleft)
+        
+  # Create a square every 10 seconds
+  if pygame.time.get_ticks() % 10000 == 0:
+    square_hitbox = create_random_square()
         
         
 def movimentacaoPersonagem_Teclado():
@@ -226,6 +260,9 @@ while running:
 
   draw(screen)
   update(dt)
+  # Create a square every 10 seconds
+  if pygame.time.get_ticks() % 10000 == 0:
+    square_hitbox = create_random_square()
   
 
   for event in pygame.event.get():
@@ -238,3 +275,4 @@ while running:
 
 pygame.quit()
 sys.exit()
+
