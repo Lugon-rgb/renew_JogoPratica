@@ -40,6 +40,7 @@ player_size = 50
 player_x = 10 #player_size // 2
 player_y = screen_height // 2 - player_size // 2
 player_speed = 4
+# player_hitbox = pygame.rect(player_x, player_y, player_size, player_size)
 
 
 # FUNÇÕES
@@ -158,7 +159,7 @@ def draw(screen):
         
         
 def movimentacaoPersonagem_Teclado():
-  global player_x, player_y, player_size, player_speed
+  global player_x, player_y, player_size, player_speed, screen_height
   keys = pygame.key.get_pressed()
 
   if keys[pygame.K_w]:
@@ -174,6 +175,7 @@ def movimentacaoPersonagem_Teclado():
       
   if keys[pygame.K_s]:
       player_y += player_speed
+
       
 
 def movimentacaoPersonagem_Mouse():
